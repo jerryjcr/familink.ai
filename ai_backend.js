@@ -13,7 +13,7 @@ document.getElementById('submitButton').addEventListener('click', async () => {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
-                  'Authorization': 'Bearer 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'  // Replace with your actual API key
+                  'Authorization': 'api key'  // Replace with your actual API key
               },
               body: JSON.stringify({
                   model: "gpt-4",  // Specify the model you want to use
