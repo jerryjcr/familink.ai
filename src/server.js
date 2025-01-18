@@ -1,9 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const socketIo = require('socket.io');
 
 const app = express();
 const port = 3000;
+const server = http.createServer(app);
+const io = socketIo(server);
 
 app.use(cors());
 app.use(express.json());
@@ -30,3 +36,26 @@ app.post('/api/messages', async (req, res) => {
 });
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
+app.use(express.static(path.join(__dirname, 'build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  socket.on('chat message', (msg) => {
+    console.log('Message received:', msg);
+    io.emit('chat message', msg);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+});
+
+server.listen(3001, () => {
+  console.log('Server running on http://localhost:3001');
+});
