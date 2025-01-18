@@ -4,6 +4,12 @@ import { db } from './firebase';
 import { collection, addDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
 
 function App() {
+  const getSize = async () => {
+    const userCollection = await collection(db, "users");
+    return await userCollection.size.toInt();
+  }
+  var user = getSize() + 1;
+
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState('');
@@ -56,7 +62,7 @@ function App() {
       try {
         await addDoc(collection(db, "messages"), {
           text: message,
-          sender: 'user1',
+          sender: user,
           timestamp: new Date()
         });
         setMessage('');
@@ -98,7 +104,7 @@ function App() {
 
         <div className="chat">
           {messages.map(msg => (
-            <div key={msg.id} className={`user ${msg.sender === 'user1' ? 'one' : 'two'}`}>
+            <div key={msg.id} className={`user ${msg.sender === user ? 'one' : 'two'}`}>
               {msg.text}
             </div>
           ))}
