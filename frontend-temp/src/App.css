@@ -1,6 +1,12 @@
+.app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
 /* Left Panel */
 .left-panel {
-  width: 40%;
+  width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -26,7 +32,6 @@
 
 .left-panel .name .uofthacks {
   font-size: 14px;
-  display: block;
   font-weight: normal;
   margin-top: 8px;
   color: #708c4b;
@@ -34,13 +39,13 @@
 
 /* Right Panel */
 .right-panel {
-  width: 60%;
+  width: 50%;
   background: linear-gradient(135deg, #e3e0c9, #b0bc98);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  margin: 40px;
   padding: 20px;
-  margin: 20px;
   border-radius: 20px;
   border: 1px solid #c8d4c1;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);

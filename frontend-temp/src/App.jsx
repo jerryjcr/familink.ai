@@ -84,9 +84,9 @@ function App() {
   return (
     <div className="app">
       <div className="left-panel">
-        <img src="/tree-placeholder.png" alt="Tree Illustration" />
+        <img src="tree-placeholder.png" alt="Tree Illustration" />
         <div className="name">
-          name here. <span className="uofthacks">uofthacks 12.</span>
+          familink.ai <span className="uofthacks">uofthacks 12.</span>
         </div>
       </div>
 
