@@ -1,0 +1,147 @@
+/* Left Panel */
+.left-panel {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f1e2;
+  padding: 20px;
+}
+
+.left-panel img {
+  height: 620px;
+  width: auto;
+  display: block;
+}
+
+.left-panel .name {
+  margin-top: 20px;
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+  color: #3b5c2e;
+  line-height: 1;
+}
+
+.left-panel .name .uofthacks {
+  font-size: 14px;
+  display: block;
+  font-weight: normal;
+  margin-top: 8px;
+  color: #708c4b;
+}
+
+/* Right Panel */
+.right-panel {
+  width: 60%;
+  background: linear-gradient(135deg, #e3e0c9, #b0bc98);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  margin: 20px;
+  border-radius: 20px;
+  border: 1px solid #c8d4c1;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Question Box */
+.question-box {
+  background-color: #7e808050;
+  opacity: 36;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 25px 20px;
+  box-sizing: border-box;
+  margin-bottom: 20px;
+}
+
+.question-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #5a7b1f;
+  margin-bottom: 5px;
+}
+
+.question-placeholder {
+  font-size: 1em;
+  font-weight: 500;
+  color: #4e4b46;
+}
+
+/* Chat Container */
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding: 5px;
+}
+
+/* Message Styles */
+.user {
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  max-width: 75%;
+  word-wrap: break-word;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.user.one {
+  align-self: flex-end;
+  background-color: #6b8e23;
+  color: #fff;
+}
+
+.user.two {
+  align-self: flex-start;
+  background-color: #f8f9fa;
+  color: #4e4b46;
+  border: 1px solid #c8d4c1;
+}
+
+/* Input Box */
+.input-container {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid #c8d4c1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.input-container input {
+  flex-grow: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  margin-right: 10px;
+  font-size: 1em;
+  color: #4e4b46;
+}
+
+.input-container button {
+  background-color: #6b8e23;
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s ease;
+}
+
+.input-container button:hover {
+  background-color: #5a7b1f;
+}
+
+.input-container input:focus {
+  outline: none;
+}
