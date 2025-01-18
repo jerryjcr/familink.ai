@@ -1,18 +1,44 @@
 import { db } from ".//firebase.js"
+import { collection, addDoc } from "firebase/firestore"
 
-async function updateFirestore(inputText) {
-  try {
-    const docRef = await addDoc(collection(db, 'answers'), {
-      content: inputText,
-      timeSent: new Date().toISOString(),
-    });
-    alert('Answer successfully sent!');
-  } catch (e) {
-    alert('Failed to send answer!');
-  }
+let user = "1";
+
+const getPreviousDocuments = async (collection, currentTime) => {
+    const answersCollection = collection(db, collection);
+    const q = query (
+        answersCollection,
+        orderBy("timeSent", "desc"),
+        where("timeSent", "<", currentTime),
+        limit(2)
+    );
+    const previousAnswer = await getDocs(q);
+    return previousAnswer;
+};
+
+const getAnswersSize = async () => {
+    const answersCollection = collection(db, "answers");
+    const snapshot = await getDocs(answersCollection);
+    return snapshot.size;
+};
+
+async function updateFirestore(inputText, user) {
+    try {
+        const docRef = await addDoc(collection(db, "answers"), {
+            content: inputText,
+            timeSent: new Date().toISOString(),
+            userId: user,
+        });
+        if (genAnswersSize() % 2 == 0) {
+            //send questions to both users
+            const questions = getPreviousDocuments("questions", new Date());
+        }
+        alert('Answer successfully sent!');
+    } catch (e) {
+        alert('Failed to send answer!');
+    }
 }
 
-// Attach event listener to an input field and button
+// Attach event listener to an input field and button, maybe not right IDs
 document.addEventListener('DOMContentLoaded', () => {
   const inputField = document.getElementById('textInput'); // The text input element
   const submitButton = document.getElementById('submitButton'); // The button element
