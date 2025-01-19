@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { db } from './firebase';
-import { collection, addDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc } from 'firebase/firestore';
 
 function App() {
+
   // Generate a random user ID for this instance
   const [user, setUser] = useState(Math.floor(Math.random() * 10000));
   const [message, setMessage] = useState('');
@@ -12,6 +13,18 @@ function App() {
   const [relationship, setRelationship] = useState(localStorage.getItem('relationship') || '');
   const [isRelationshipHovered, setIsRelationshipHovered] = useState(false);
   const [isRelationshipEditMode, setIsRelationshipEditMode] = useState(false);
+
+
+  useEffect(() => {
+    const q = query(collection(db, "questions"), orderBy("timestamp", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        setLastInput(snapshot.docs[0].data());
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   useEffect(() => {
     const q = query(collection(db, "messages"), orderBy("timestamp"));
@@ -40,6 +53,7 @@ function App() {
 
   const generateQuestion = async (messages) => {
     const apiURL = 'https://api.openai.com/v1/chat/completions';
+
     const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
     const currentUser = user;
     const otherUser = messages.length > 0 ? messages[0].sender === currentUser ? 2 : 1 : null;
@@ -48,17 +62,20 @@ function App() {
 
     const prompt = `Given the following chat history, with the relationship context of User ${currentUser} being '${currentUserRelationship}' and User ${otherUser} being '${otherUserRelationship || 'unknown'}', ask a question that will help them get to know each other on a deeper level: ${JSON.stringify(messages)}`;
 
+
     try {
       const response = await fetch(apiURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': 'placeholder' // API KEY
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
+
+          model: "gpt-4",
           messages: [{ role: "system", content: "You are a helpful assistant that generates meaningful questions, taking into account the relationship between the users." }, { role: "user", content: prompt }],
           max_tokens: 150,
+
         }),
       });
 
@@ -68,8 +85,12 @@ function App() {
 
       const data = await response.json();
       if (data.choices && data.choices.length > 0) {
-        setQuestion(data.choices[0].message.content.trim());
-        localStorage.setItem('lastQuestionDate', new Date().toLocaleDateString());
+        const generatedQuestion = data.choices[0].message.content.trim();
+        setQuestion(generatedQuestion);
+        await setDoc(doc(db, "dailyQuestion", "current"), {
+          question: generatedQuestion,
+          date: new Date().toLocaleDateString()
+        });
       } else {
         console.error('No question generated from OpenAI API.');
       }
@@ -78,14 +99,41 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    const fetchDailyQuestion = async () => {
+      const docRef = doc(db, "dailyQuestion", "current");
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const today = new Date().toLocaleDateString();
+
+        if (data.date === today) {
+          setQuestion(data.question);
+        } else {
+          generateQuestion(messages);
+        }
+      } else {
+        generateQuestion(messages);
+      }
+    };
+
+
+      fetchDailyQuestion();
+    
+  }, [messages]);
+
   const sendMessage = async () => {
     if (message.trim() !== '') {
       try {
         await addDoc(collection(db, "messages"), {
           text: message,
+
           sender: user,
           timestamp: new Date(),
           relationship: relationship
+
+
         });
         setMessage('');
       } catch (e) {
@@ -93,21 +141,6 @@ function App() {
       }
     }
   };
-
-  useEffect(() => {
-    const lastQuestionDate = localStorage.getItem('lastQuestionDate');
-    const today = new Date().toLocaleDateString();
-
-    if (messages.length > 0 && lastQuestionDate !== today) {
-      generateQuestion(messages);
-    } else if (!question && lastQuestionDate === today) {
-      // If the question is already generated today, retrieve it
-      const storedQuestion = localStorage.getItem('dailyQuestion');
-      if (storedQuestion) {
-        setQuestion(storedQuestion);
-      }
-    }
-  }, [messages, question]);
 
   return (
     <div className="app">
@@ -148,6 +181,8 @@ function App() {
         <div className="chat">
           {messages.map(msg => (
             <div key={msg.id} className={`user ${msg.sender === user ? 'one' : 'two'}`}>
+              {question}
+              <p>{"\n"}</p>
               {msg.text}
             </div>
           ))}
