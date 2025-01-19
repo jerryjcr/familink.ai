@@ -4,11 +4,15 @@ import { db } from './firebase';
 import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc } from 'firebase/firestore';
 
 function App() {
+
+  // Generate a random user ID for this instance
+  const [user, setUser] = useState(Math.floor(Math.random() * 10000));
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState('');
-  const [lastInput, setLastInput] = useState(null);
-  const user = 'user1'; // Define the user variable
+  const [relationship, setRelationship] = useState(localStorage.getItem('relationship') || '');
+  const [isRelationshipHovered, setIsRelationshipHovered] = useState(false);
+  const [isRelationshipEditMode, setIsRelationshipEditMode] = useState(false);
 
 
   useEffect(() => {
@@ -21,6 +25,7 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+
   useEffect(() => {
     const q = query(collection(db, "messages"), orderBy("timestamp"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -29,20 +34,48 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  const handleMouseEnter = () => {
+    setIsRelationshipHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsRelationshipHovered(false);
+  };
+
+  const handleRelationshipChange = (event) => {
+    setRelationship(event.target.value);
+    localStorage.setItem('relationship', event.target.value);
+  };
+
+  const handleRelationshipClick = () => {
+    setIsRelationshipEditMode(true);
+  };
+
   const generateQuestion = async (messages) => {
     const apiURL = 'https://api.openai.com/v1/chat/completions';
-    const prompt = `Given the following chat history between two family members, ask a question that will help them get to know each other on a deeper level: ${JSON.stringify(messages)}`;
+
+    const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+    const currentUser = user;
+    const otherUser = messages.length > 0 ? messages[0].sender === currentUser ? 2 : 1 : null;
+    const currentUserRelationship = localStorage.getItem('relationship');
+    const otherUserRelationship = messages.find(msg => msg.sender === otherUser)?.relationship;
+
+    const prompt = `Given the following chat history, with the relationship context of User ${currentUser} being '${currentUserRelationship}' and User ${otherUser} being '${otherUserRelationship || 'unknown'}', ask a question that will help them get to know each other on a deeper level: ${JSON.stringify(messages)}`;
+
 
     try {
       const response = await fetch(apiURL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer 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',
+          'Authorization': 'placeholder' // API KEY
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [{ role: 'system', content: prompt }],
+
+          model: "gpt-4",
+          messages: [{ role: "system", content: "You are a helpful assistant that generates meaningful questions, taking into account the relationship between the users." }, { role: "user", content: prompt }],
+          max_tokens: 150,
+
         }),
       });
 
@@ -95,8 +128,12 @@ function App() {
       try {
         await addDoc(collection(db, "messages"), {
           text: message,
-          sender: 'user1',
-          timestamp: new Date()
+
+          sender: user,
+          timestamp: new Date(),
+          relationship: relationship
+
+
         });
         setMessage('');
       } catch (e) {
@@ -115,9 +152,30 @@ function App() {
       </div>
 
       <div className="right-panel">
-        <div className="question-box">
-          <div id="question-title">today's question:</div>
-          <div id="question-placeholder">{question}</div>
+        <div className="question-box-container">
+          <div className="question-box">
+            <div id="question-title">today's question:</div>
+            <div id="question-placeholder">{question}</div>
+          </div>
+          <div
+            className="relationship-input"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            {!isRelationshipEditMode ? (
+              <div onClick={handleRelationshipClick}>
+                {isRelationshipHovered ? 'Change?' : relationship}
+              </div>
+            ) : (
+              <input
+                type="text"
+                placeholder="Relationship"
+                value={relationship}
+                onChange={handleRelationshipChange}
+                onBlur={() => setIsRelationshipEditMode(false)}
+              />
+            )}
+          </div>
         </div>
 
         <div className="chat">
