@@ -4,20 +4,14 @@ import { db } from './firebase';
 import { collection, addDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
 
 function App() {
-  const getSize = async () => {
-    const userCollection = await collection(db, "users");
-    return await userCollection.size.toInt();
-  }
-  var user = getSize() + 1;
-
+  // Generate a random user ID for this instance
+  const [user, setUser] = useState(Math.floor(Math.random() * 10000));
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState('');
   const [relationship, setRelationship] = useState(localStorage.getItem('relationship') || '');
   const [isRelationshipHovered, setIsRelationshipHovered] = useState(false);
   const [isRelationshipEditMode, setIsRelationshipEditMode] = useState(false);
-
-  // Add state for hover and edit mode
 
   useEffect(() => {
     const q = query(collection(db, "messages"), orderBy("timestamp"));
