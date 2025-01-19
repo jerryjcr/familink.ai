@@ -89,7 +89,7 @@ function App() {
         setQuestion(generatedQuestion);
         await setDoc(doc(db, "dailyQuestion", "current"), {
           question: generatedQuestion,
-          date: new Date().toLocaleDateString()
+          date: new Date().getDate()
         });
       } else {
         console.error('No question generated from OpenAI API.');
@@ -106,7 +106,8 @@ function App() {
 
       if (docSnap.exists()) {
         const data = docSnap.data();
-        const today = new Date().toLocaleDateString();
+        const today = new Date().getDate();
+        console.log(data.date, today);
 
         if (data.date === today) {
           setQuestion(data.question);
