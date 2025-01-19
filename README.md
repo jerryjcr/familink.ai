@@ -21,7 +21,6 @@ Familink.ai is built with the following technologies:
 - **AI Integration**: [OpenAI API](https://platform.openai.com/) for generating personalized, adaptive conversation prompts.
 
 ---
----
 
 ## Key Functionalities
 
