@@ -54,13 +54,13 @@ function App() {
   const generateQuestion = async (messages) => {
     const apiURL = 'https://api.openai.com/v1/chat/completions';
 
-    const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+  console.log(messages);
     const currentUser = user;
     const otherUser = messages.length > 0 ? messages[0].sender === currentUser ? 2 : 1 : null;
     const currentUserRelationship = localStorage.getItem('relationship');
     const otherUserRelationship = messages.find(msg => msg.sender === otherUser)?.relationship;
 
-    const prompt = `Given the following chat history, with the relationship context of User ${currentUser} being '${currentUserRelationship}' and User ${otherUser} being '${otherUserRelationship || 'unknown'}', ask a question that will help them get to know each other on a deeper level: ${JSON.stringify(messages)}`;
+    const prompt = `Given the following chat history, with the relationship context of being '${currentUserRelationship}' and '${otherUserRelationship || 'unknown'}', ask a question that will help them get to know each other on a deeper level. Avoid repeat questions: ${JSON.stringify(messages)}`;
 
 
     try {
@@ -68,12 +68,12 @@ function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'placeholder' // API KEY
+          'Authorization': 'Bearer '
         },
         body: JSON.stringify({
 
           model: "gpt-4",
-          messages: [{ role: "system", content: "You are a helpful assistant that generates meaningful questions, taking into account the relationship between the users." }, { role: "user", content: prompt }],
+          messages: [{ role: "user", content: prompt }],
           max_tokens: 150,
 
         }),
@@ -181,8 +181,6 @@ function App() {
         <div className="chat">
           {messages.map(msg => (
             <div key={msg.id} className={`user ${msg.sender === user ? 'one' : 'two'}`}>
-              {question}
-              <p>{"\n"}</p>
               {msg.text}
             </div>
           ))}
