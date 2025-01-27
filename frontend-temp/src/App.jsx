@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { db } from './firebase';
-import { collection, addDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc } from 'firebase/firestore';
 
 function App() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState('');
+  const [lastInput, setLastInput] = useState(null);
+
+  useEffect(() => {
+    const q = query(collection(db, "questions"), orderBy("timestamp", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        setLastInput(snapshot.docs[0].data());
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const q = query(collection(db, "messages"), orderBy("timestamp"));
@@ -18,7 +29,6 @@ function App() {
 
   const generateQuestion = async (messages) => {
     const apiURL = 'https://api.openai.com/v1/chat/completions';
-    const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
     const prompt = `Given the following chat history between two family members, ask a question that will help them get to know each other on a deeper level: ${JSON.stringify(messages)}`;
 
     try {
@@ -26,12 +36,11 @@ function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': 'Bearer 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',
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "system", content: "You are a helpful assistant that generates meaningful questions." }, { role: "user", content: prompt }],
-          max_tokens: 150,
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'system', content: prompt }],
         }),
       });
 
@@ -41,8 +50,12 @@ function App() {
 
       const data = await response.json();
       if (data.choices && data.choices.length > 0) {
-        setQuestion(data.choices[0].message.content.trim());
-        localStorage.setItem('lastQuestionDate', new Date().toLocaleDateString());
+        const generatedQuestion = data.choices[0].message.content.trim();
+        setQuestion(generatedQuestion);
+        await setDoc(doc(db, "dailyQuestion", "current"), {
+          question: generatedQuestion,
+          date: new Date().toLocaleDateString()
+        });
       } else {
         console.error('No question generated from OpenAI API.');
       }
@@ -50,6 +63,30 @@ function App() {
       console.error('Error generating question:', error);
     }
   };
+
+  useEffect(() => {
+    const fetchDailyQuestion = async () => {
+      const docRef = doc(db, "dailyQuestion", "current");
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const today = new Date().toLocaleDateString();
+
+        if (data.date === today) {
+          setQuestion(data.question);
+        } else {
+          generateQuestion(messages);
+        }
+      } else {
+        generateQuestion(messages);
+      }
+    };
+
+    if (messages.length > 0) {
+      fetchDailyQuestion();
+    }
+  }, [messages]);
 
   const sendMessage = async () => {
     if (message.trim() !== '') {
@@ -65,21 +102,6 @@ function App() {
       }
     }
   };
-
-  useEffect(() => {
-    const lastQuestionDate = localStorage.getItem('lastQuestionDate');
-    const today = new Date().toLocaleDateString();
-
-    if (messages.length > 0 && lastQuestionDate !== today) {
-      generateQuestion(messages);
-    } else if (!question && lastQuestionDate === today) {
-      // If the question is already generated today, retrieve it
-      const storedQuestion = localStorage.getItem('dailyQuestion');
-      if (storedQuestion) {
-        setQuestion(storedQuestion);
-      }
-    }
-  }, [messages, question]);
 
   return (
     <div className="app">
