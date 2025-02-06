@@ -4,16 +4,12 @@ import { db } from './firebase';
 import { collection, addDoc, onSnapshot, orderBy, query, doc, setDoc, getDoc } from 'firebase/firestore';
 
 function App() {
-  const getSize = async () => {
-    const userCollection = await collection(db, "users");
-    return await userCollection.size.toInt();
-  }
-  var user = getSize() + 1;
-
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [question, setQuestion] = useState('');
   const [lastInput, setLastInput] = useState(null);
+  const user = 'user1'; // Define the user variable
+
 
   useEffect(() => {
     const q = query(collection(db, "questions"), orderBy("timestamp", "desc"));
@@ -89,9 +85,9 @@ function App() {
       }
     };
 
-    if (messages.length > 0) {
+
       fetchDailyQuestion();
-    }
+    
   }, [messages]);
 
   const sendMessage = async () => {
@@ -99,7 +95,7 @@ function App() {
       try {
         await addDoc(collection(db, "messages"), {
           text: message,
-          sender: user,
+          sender: 'user1',
           timestamp: new Date()
         });
         setMessage('');
@@ -127,6 +123,8 @@ function App() {
         <div className="chat">
           {messages.map(msg => (
             <div key={msg.id} className={`user ${msg.sender === user ? 'one' : 'two'}`}>
+              {question}
+              <p>{"\n"}</p>
               {msg.text}
             </div>
           ))}
